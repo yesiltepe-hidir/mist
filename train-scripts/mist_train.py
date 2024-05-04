@@ -454,7 +454,7 @@ if __name__ == '__main__':
     print_text += f"-sd_{args.base.replace('.','_')}" 
     print(print_text)
     
-    log_file = f'rebuttal_gender_age_glass_{occupation_name}.txt'
+    log_file = f'log_{occupation_name}.txt'
 
     with open(log_file, 'a') as log:
         log.write(f'occupation: {args.concept}\n')
