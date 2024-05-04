@@ -6,17 +6,24 @@ import numpy as np
 from PIL import Image
 from transformers import CLIPProcessor, CLIPModel
 
-saved_model = '/home/grads/hidir/unified-concept-editing/models/nurse_preserve-a nurse-attributes-male9nurse_female9nurse-sd_1_4.pt'
+parser = argparse.ArgumentParser()
+parser.add_argument('--concept', help='prompt corresponding to concept to erase', type=str, default='lawyer')
+parser.add_argument('--saved_model_path', help='path to finetuned model', type=str)
+
+args = parser.parse_args()
+
+saved_model = args.saved_model_path
+
 device = 'cuda'
 model_version = 'CompVis/stable-diffusion-v1-4'
 ldm_stable = StableDiffusionPipeline.from_pretrained(model_version, safety_checker=None).to(device)
-# ldm_stable.unet.load_state_dict(torch.load(saved_model))
+ldm_stable.unet.load_state_dict(torch.load(saved_model))
 
 clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 # prompts = ['nurse', 'CEO', 'doctor', 'housekeeper', 'singer', 'lawyer', 'teacher', 'driver']
-prompts = ['housekeeper']
+prompts = [args.concept]
 ratios = []
 seeds = np.random.randint(5000,size=5) 
 # print('concepts:', concepts)
