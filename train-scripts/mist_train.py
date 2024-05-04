@@ -274,7 +274,7 @@ def edit_model(ldm_stable, old_text_, new_text_, retain_text_, add=True, layers_
             
         max_change = [(ratio - desired_ratio).abs().max() for ratio, desired_ratio in zip(ratios,desired_ratios)]
 
-        torch.save(ldm_stable.unet.state_dict(), f'appendix_checkpoints/{str(i)}_inter_{occupation_name}.pt')
+        # torch.save(ldm_stable.unet.state_dict(), f'checkpoints/{str(i)}_{occupation_name}.pt')
         # if ratios[0][0] >= ratios[0][1] + 0.6:
         if max(max_change) < max_bias_diff:
             print(f'All concepts are debiased at Iteration:{i}')
@@ -469,7 +469,7 @@ if __name__ == '__main__':
     with open(log_file, 'a') as log:
         log.write(f'time elapsed: {end - start}\n')
 
-    torch.save(ldm_stable.unet.state_dict(), f'rebuttal_checkpoints/inter_{occupation_name}.pt')
+    torch.save(ldm_stable.unet.state_dict(), f'checkpoints/{occupation_name}.pt')
 
     with open(f'data/unbiased-{print_text}.txt', 'w') as fp:
         fp.write(str(old_texts)+'\n'+str(weights)+'\n'+str(init_ratios)+'\n'+str(final_ratios))
