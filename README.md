@@ -11,6 +11,7 @@ conda env create -f environment.yml
 
 `[Example Usage]` To finetune the cross-attention weights:
 
+
 ```bash
 python train-scripts/mist_train.py --concept "a lawyer" --attributes "young woman with glasses, young woman without glasses, old man with glasses, old man without glasses, young man with glasses, young man without glasses, old woman with glasses, old woman without glasses"  --max_bias_diff 0.05  --num_images 20
 ````
