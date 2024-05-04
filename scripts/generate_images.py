@@ -9,7 +9,7 @@ import os
 
 seeds = np.random.randint(0, 5000, 1)
 seeds = [421]
-models_path = '/home/grads/hidir/unified-concept-editing/appendix_checkpoints/'
+models_path = 'checkpoints/'
 with torch.no_grad():
         for model_name in os.listdir(models_path):
                 print(model_name)
