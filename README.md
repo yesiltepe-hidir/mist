@@ -9,4 +9,11 @@
 python train-scripts/mist_train.py --concept "a lawyer" --attributes "young woman with glasses, young woman without glasses, old man with glasses, old man without glasses, young man with glasses, young man without glasses, old woman with glasses, old woman without glasses"  --max_bias_diff 0.05  --num_images 20
 ````
 
-The checkpoints will be available under `appendix_checkpoints` folder.
+The checkpoints will be available under `checkpoints` folder.
+
+`[Qualitative Results]` To generate images with the debiased weights:
+
+Change the path variable in `generate_images.py` file line 2 with your path. Then run the following:
+```bash
+ python scripts/generate_images.py
+```
