@@ -17,3 +17,11 @@ Change the path variable in `generate_images.py` file line 2 with your path. The
 ```bash
  python scripts/generate_images.py
 ```
+
+`[Quantitative Results]` To get the test distributions:
+
+Change the path variable in `eval_distributions.py` file line 2 with your path. Then run the following:
+
+```bash
+ python scripts/eval_distributions.py --concept "lawyer" --saved_model_path "<ROOT_PATH>/checkpoints/<MODEL_NAME>
+```
