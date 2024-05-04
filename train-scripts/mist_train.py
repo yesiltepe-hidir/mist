@@ -385,93 +385,93 @@ def edit_model(ldm_stable, old_text_, new_text_, retain_text_, add=True, layers_
     return ldm_stable, weights, init_ratios, ratios
 
 if __name__ == '__main__':
-    for occ in ['mechanic', 'banker', 'lawyer']:
 
-        parser = argparse.ArgumentParser(
-                        prog = 'TrainUSD',
-                        description = 'Finetuning stable diffusion to debias the concepts')
-        parser.add_argument('--concept', help='prompt corresponding to concept to erase', type=str, default='a lawyer')
-        parser.add_argument('--attributes', help='Attributes to debias', type=str, default='young woman with glasses, young woman without glasses, old man with glasses, old man without glasses, young man with glasses, young man without glasses, old woman with glasses, old woman without glasses') # 'young woman, old man, young man, old woman'  | 'Indian woman, Indian man, Asian woman, Asian man, African woman, African man, European woman, European man, Latino woman, Latino man'
-        parser.add_argument('--retain', help='retain', default=[''])
+    parser = argparse.ArgumentParser(
+                    prog = 'TrainUSD',
+                    description = 'Finetuning stable diffusion to debias the concepts')
+    parser.add_argument('--concept', help='prompt corresponding to concept to erase', type=str, default='a lawyer')
+    parser.add_argument('--attributes', help='Attributes to debias', type=str, default='young woman with glasses, young woman without glasses, old man with glasses, old man without glasses, young man with glasses, young man without glasses, old woman with glasses, old woman without glasses') # 'young woman, old man, young man, old woman'  | 'Indian woman, Indian man, Asian woman, Asian man, African woman, African man, European woman, European man, Latino woman, Latino man'
+    parser.add_argument('--retain', help='retain', default=[''])
 
-        parser.add_argument('--device', help='cuda devices to train on', type=str, required=False, default='0')
-        parser.add_argument('--base', help='base version for stable diffusion', type=str, required=False, default='1.4')
-        parser.add_argument('--num_images', help='number of images per concept to generate for validation', type=int, required=False, default=20)
-        parser.add_argument('--max_bias_diff', help='number of images per concept to generate for validation', type=int, required=False, default=0.05)
-        args = parser.parse_args()
-        args.concept = f'a person of {occ}'
-        occupation_name = args.concept.split()[-1]
+    parser.add_argument('--device', help='cuda devices to train on', type=str, required=False, default='0')
+    parser.add_argument('--base', help='base version for stable diffusion', type=str, required=False, default='1.4')
+    parser.add_argument('--num_images', help='number of images per concept to generate for validation', type=int, required=False, default=20)
+    parser.add_argument('--max_bias_diff', help='number of images per concept to generate for validation', type=float, required=False, default=0.05)
+    args = parser.parse_args()
+    occ = args.concept
+    args.concept = f'a person of {occ}'
+    occupation_name = args.concept.split()[-1]
 
-        print('occupation:', occupation_name)
+    print('occupation:', occupation_name)
 
-        print('max_bias_diff:', args.max_bias_diff)
-        device = f'cuda'
-        num_images = args.num_images
-        concepts = args.concept.split(',')
-        concepts = [con.strip() for con in concepts]
-        print_text=''
-        for txt in concepts:
-            print_text += txt.lower()+'_'
+    print('max_bias_diff:', args.max_bias_diff)
+    device = f'cuda'
+    num_images = args.num_images
+    concepts = args.concept.split(',')
+    concepts = [con.strip() for con in concepts]
+    print_text=''
+    for txt in concepts:
+        print_text += txt.lower()+'_'
 
-        if concepts[0] == 'default0':
-            print('Using default training setup')
-            concepts = ['attendant', 'cashier', 'teacher','nurse', 'assistant', 'secretary', 'cleaner', 'receptionist','clerk','counselor', 'designer', 'hairdresser', 'writer', 'housekeeper', 'baker', 'librarian','tailor','driver','supervisor', 'janitor', 'cook', 'laborer', 'construction worker', 'developer', 'carpenter','manager', 'lawyer', 'farmer', 'salesperson', 'physician', 'guard', 'analyst', 'mechanic', 'sheriff', 'CEO', 'doctor', 'chef']
-        old_texts = []
-        concepts_ = []
-        for concept in concepts:
-            old_texts.append(f'{concept}')
-            concepts_.extend([concept]*5)
-        attributes = args.attributes
-        attributes = attributes.split(',')
-        attributes = [att.strip() for att in attributes]
-        
-        print_text  = print_text[:-1] + '-attributes-'
-        for txt in attributes:
-            print_text += txt.lower().replace(' ','9')+'_'
-        print_text  = print_text[:-1]
-        
-        new_texts = [[text.replace(concepts_[idx], att) for att in attributes] for idx, text in enumerate(old_texts) ]
-        
-        df = pd.read_csv('data/profession_prompts.csv')
-
-        retain_texts = list(df.profession.unique())
-        ### default concepts to erase
+    if concepts[0] == 'default0':
+        print('Using default training setup')
+        concepts = ['attendant', 'cashier', 'teacher','nurse', 'assistant', 'secretary', 'cleaner', 'receptionist','clerk','counselor', 'designer', 'hairdresser', 'writer', 'housekeeper', 'baker', 'librarian','tailor','driver','supervisor', 'janitor', 'cook', 'laborer', 'construction worker', 'developer', 'carpenter','manager', 'lawyer', 'farmer', 'salesperson', 'physician', 'guard', 'analyst', 'mechanic', 'sheriff', 'CEO', 'doctor', 'chef']
+    old_texts = []
+    concepts_ = []
+    for concept in concepts:
+        old_texts.append(f'{concept}')
+        concepts_.extend([concept]*5)
+    attributes = args.attributes
+    attributes = attributes.split(',')
+    attributes = [att.strip() for att in attributes]
     
-        old_texts_lower = [text.lower() for text in old_texts]
-        retain_texts = [text for text in retain_texts if text.lower() not in old_texts_lower]
+    print_text  = print_text[:-1] + '-attributes-'
+    for txt in attributes:
+        print_text += txt.lower().replace(' ','9')+'_'
+    print_text  = print_text[:-1]
     
+    new_texts = [[text.replace(concepts_[idx], att) for att in attributes] for idx, text in enumerate(old_texts) ]
+    
+    df = pd.read_csv('data/profession_prompts.csv')
 
-        sd14="CompVis/stable-diffusion-v1-4"
-        sd21='stabilityai/stable-diffusion-2-1-base'
-        if args.base=='1.4':
-            model_version = sd14
-        elif args.base=='2.1':
-            model_version = sd21
-        else:
-            model_version = sd14
-        ldm_stable = StableDiffusionPipeline.from_pretrained(model_version, safety_checker=None).to(device)
+    retain_texts = list(df.profession.unique())
+    ### default concepts to erase
 
-        print_text += f"-sd_{args.base.replace('.','_')}" 
-        print(print_text)
-        
-        log_file = f'rebuttal_gender_age_glass_{occupation_name}.txt'
+    old_texts_lower = [text.lower() for text in old_texts]
+    retain_texts = [text for text in retain_texts if text.lower() not in old_texts_lower]
 
-        with open(log_file, 'a') as log:
-            log.write(f'occupation: {args.concept}\n')
-            log.write(f'attributes: {args.attributes}\n')
-        
-        retain_texts = args.retain
-        start = time.time()
-        ldm_stable, weights, init_ratios, final_ratios = edit_model(ldm_stable= ldm_stable, old_text_= old_texts, new_text_=new_texts, add=False, retain_text_= retain_texts, lamb=0.5, erase_scale = 1., preserve_scale = 0.2, num_images=num_images, log_file=log_file, eos_embs=None, max_bias_diff=args.max_bias_diff, occupation_name=occupation_name)
-        end = time.time()
-        torch.save(seed_list, 'seeds.pt')
-        
-        with open(log_file, 'a') as log:
-            log.write(f'time elapsed: {end - start}\n')
 
-        torch.save(ldm_stable.unet.state_dict(), f'rebuttal_checkpoints/inter_{occupation_name}.pt')
+    sd14="CompVis/stable-diffusion-v1-4"
+    sd21='stabilityai/stable-diffusion-2-1-base'
+    if args.base=='1.4':
+        model_version = sd14
+    elif args.base=='2.1':
+        model_version = sd21
+    else:
+        model_version = sd14
+    ldm_stable = StableDiffusionPipeline.from_pretrained(model_version, safety_checker=None).to(device)
 
-        with open(f'data/unbiased-{print_text}.txt', 'w') as fp:
-            fp.write(str(old_texts)+'\n'+str(weights)+'\n'+str(init_ratios)+'\n'+str(final_ratios))
-        
-        # ['image of nurse', 'nurse'] [['image of male', 'image of female'], ['male', 'female']]
+    print_text += f"-sd_{args.base.replace('.','_')}" 
+    print(print_text)
+    
+    log_file = f'rebuttal_gender_age_glass_{occupation_name}.txt'
+
+    with open(log_file, 'a') as log:
+        log.write(f'occupation: {args.concept}\n')
+        log.write(f'attributes: {args.attributes}\n')
+    
+    retain_texts = args.retain
+    start = time.time()
+    ldm_stable, weights, init_ratios, final_ratios = edit_model(ldm_stable= ldm_stable, old_text_= old_texts, new_text_=new_texts, add=False, retain_text_= retain_texts, lamb=0.5, erase_scale = 1., preserve_scale = 0.2, num_images=num_images, log_file=log_file, eos_embs=None, max_bias_diff=args.max_bias_diff, occupation_name=occupation_name)
+    end = time.time()
+    torch.save(seed_list, 'seeds.pt')
+    
+    with open(log_file, 'a') as log:
+        log.write(f'time elapsed: {end - start}\n')
+
+    torch.save(ldm_stable.unet.state_dict(), f'rebuttal_checkpoints/inter_{occupation_name}.pt')
+
+    with open(f'data/unbiased-{print_text}.txt', 'w') as fp:
+        fp.write(str(old_texts)+'\n'+str(weights)+'\n'+str(init_ratios)+'\n'+str(final_ratios))
+    
+    # ['image of nurse', 'nurse'] [['image of male', 'image of female'], ['male', 'female']]
